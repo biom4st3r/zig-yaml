@@ -216,17 +216,28 @@ fn parsePointer(self: Yaml, arena: Allocator, comptime T: type, value: Value) Er
 
     switch (ptr_info.size) {
         .slice => {
+            const len = if (ptr_info.child == u8)
+                (value.asScalar() orelse return error.TypeMismatch).len
+            else
+                value.list.len;
+
+            // Allocate the array with or without the sentinel
+            const parsed: T = if (ptr_info.sentinel()) |sentinel| blk: {
+                const container = try arena.alloc(ptr_info.child, len + 1);
+                container[container.len - 1] = sentinel;
+                break :blk @ptrCast(container);
+            } else try arena.alloc(ptr_info.child, len);
+
             if (ptr_info.child == u8) {
-                const scalar = value.asScalar() orelse return error.TypeMismatch;
-                return try arena.dupe(u8, scalar);
+                @memcpy(parsed[0..len], value.asScalar() orelse return error.TypeMismatch);
+                return parsed;
             }
 
             if (value.asList()) |list| {
-                var parsed = try arena.alloc(ptr_info.child, list.len);
                 for (list, 0..) |elem, i| {
                     parsed[i] = try self.parseValue(arena, ptr_info.child, elem);
                 }
-                return parsed;
+                return @ptrCast(parsed);
             }
 
             return error.TypeMismatch;

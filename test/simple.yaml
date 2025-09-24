@@ -3,6 +3,11 @@ numbers:
   - 10
   - -8
   - 6
+sentinal_str: Jane Doe
+sentinal_list: 
+  - 32000
+  - 32001
+  - 32002
 isyaml: false
 hasBoolean: NO
 nested:

@@ -25,6 +25,8 @@ test "simple" {
     const Simple = struct {
         names: []const []const u8,
         numbers: []const i16,
+        sentinal_str: [:0]const u8,
+        sentinal_list: [:0]const u16,
         nested: struct {
             some: []const u8,
             wick: []const u8,
@@ -37,6 +39,8 @@ test "simple" {
         pub fn eql(self: @This(), other: @This()) bool {
             if (self.names.len != other.names.len) return false;
             if (self.numbers.len != other.numbers.len) return false;
+            if (self.sentinal_str.len != other.sentinal_str.len) return false;
+            if (self.sentinal_list.len != other.sentinal_list.len) return false;
             if (self.finally.len != other.finally.len) return false;
 
             for (self.names, 0..) |lhs, i| {
@@ -45,6 +49,12 @@ test "simple" {
 
             for (self.numbers, 0..) |lhs, i| {
                 if (lhs != other.numbers[i]) return false;
+            }
+
+            if (!mem.eql(u8, self.sentinal_str, other.sentinal_str)) return false;
+
+            for (self.sentinal_list, 0..) |lhs, i| {
+                if (lhs != other.sentinal_list[i]) return false;
             }
 
             for (self.finally, 0..) |lhs, i| {
@@ -68,6 +78,8 @@ test "simple" {
     const expected = Simple{
         .names = &[_][]const u8{ "John Doe", "MacIntosh", "Jane Austin" },
         .numbers = &[_]i16{ 10, -8, 6 },
+        .sentinal_str = "Jane Doe",
+        .sentinal_list = &[_:0]u16{ 32000, 32001, 32002 },
         .nested = .{
             .some = "one",
             .wick = "john doe",

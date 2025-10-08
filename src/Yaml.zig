@@ -220,9 +220,10 @@ fn parsePointer(self: Yaml, arena: Allocator, comptime T: type, value: Value) Er
                 (value.asScalar() orelse return error.TypeMismatch).len
             else
                 value.list.len;
+            const SliceT = if (ptr_info.sentinel()) |S| [:S]ptr_info.child else []ptr_info.child;
 
             // Allocate the array with or without the sentinel
-            const parsed: T = if (ptr_info.sentinel()) |sentinel| blk: {
+            const parsed: SliceT = if (ptr_info.sentinel()) |sentinel| blk: {
                 const container = try arena.alloc(ptr_info.child, len + 1);
                 container[container.len - 1] = sentinel;
                 break :blk @ptrCast(container);
